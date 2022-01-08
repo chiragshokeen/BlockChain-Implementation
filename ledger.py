@@ -3,7 +3,7 @@ import hashlib
 import json
 from flask import Flask, jsonify,request
 
-# Part 1 - Building a Blockchain
+
 
 class Blockchain:
 
