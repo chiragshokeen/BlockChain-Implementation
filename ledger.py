@@ -2,8 +2,9 @@ import datetime
 import hashlib
 import json
 from flask import Flask, jsonify,request
+#from werkzeug.datastructures import T
 
-#
+#creating the blockchain
 
 class Blockchain:
 
@@ -66,4 +67,63 @@ class Blockchain:
     def get_previous_block(self):
         return self.chain[-1]
 
+
+
+# Part 2 - Mining our Blockchain
+
+# Creating a Web App
+app = Flask(__name__)
+
+# Creating a Blockchain
+blockchain = Blockchain()
+
+# Getting the full Blockchain
+@app.route('/get_chain', methods = ['GET'])
+def get_chain():
+    response = {'chain': blockchain.chain,
+                'length': len(blockchain.chain)}
+    return jsonify(response), 200
+
+# Checking if the Blockchain is valid
+@app.route('/is_valid', methods = ['GET'])
+def is_valid():
+    is_valid = blockchain.is_chain_valid(blockchain.chain)
+    if is_valid:
+        response = {'message': 'All good. The Blockchain is valid.'}
+    else:
+        response = {'message': 'We have a problem. The Blockchain is not valid.'}
         
+    return jsonify(response), 200
+
+@app.route('/mine_block' , methods = ['POST'])
+
+def mine_block():
+
+    values = request.get_json()
+
+    required = ['owner' , 'Reg_no']
+
+    if not all (k in values for k in required):
+        return 'Missing values' , 400 #error 400 means syntax error
+
+    owner = values['owner']
+
+    Reg_no = values['Reg_no']
+
+    prev_block = blockchain.get_previous_block()
+
+    prev_proof = prev_block['proof']
+
+    proof = blockchain.proof_of_work(prev_proof)
+
+    prev_hash = blockchain.hash(prev_block)
+
+    block = blockchain.create_block( owner , Reg_no , proof , prev_hash )
+
+    response = { 'message' : 'The record has been added in the blockchain' }
+
+    return jsonify(response) , 200
+    
+app.run( host = '0.0.0.0' , port = 5000 , debug=True ) # this host to allow local network p2p 
+
+
